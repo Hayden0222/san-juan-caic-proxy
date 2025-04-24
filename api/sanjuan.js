@@ -1,8 +1,17 @@
 export default async function handler(req, res) {
-  const { zone = 'all', data_type = 'forecast', date } = req.query;
+  const { zone = 'all', data_type = 'forecast' } = req.query;
 
   try {
-    const response = await fetch("https://avalanche.state.co.us/api-proxy/forecasts/full");
+    const response = await fetch("https://avalanche.state.co.us/api-proxy/forecasts/full", {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`CAIC fetch failed: ${response.status}`);
+    }
+
     const data = await response.json();
 
     const zones = {
@@ -28,6 +37,8 @@ export default async function handler(req, res) {
 
     res.status(200).json(result);
   } catch (e) {
+    console.error("CAIC Proxy Error:", e.message);
     res.status(500).json({ error: "Could not fetch CAIC data" });
   }
 }
+
